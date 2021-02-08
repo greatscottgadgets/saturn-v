@@ -9,7 +9,7 @@
 #
 #
 
-BOARD ?= luna_d21
+BOARD ?= luna_d11
 
 CROSS=arm-none-eabi-
 
