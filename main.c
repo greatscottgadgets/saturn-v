@@ -18,7 +18,7 @@
 #include "boot.h"
 #include "common/nvm.h"
 
-#include <board.h>
+#include "common/board.h"
 
 __attribute__ ((section(".copyright")))
 __attribute__ ((used))
