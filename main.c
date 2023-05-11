@@ -20,10 +20,6 @@
 
 #include <board.h>
 
-__attribute__ ((section(".copyright")))
-__attribute__ ((used))
-const char copyright_note[] = COPYRIGHT_NOTE;
-
 volatile bool exit_and_jump = 0;
 
 /*** SysTick ***/
