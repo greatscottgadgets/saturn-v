@@ -74,10 +74,9 @@ void usb_init(){
 
 void usb_reset(){
 	usb_endpoints[0].DeviceDescBank[0].ADDR.reg = (uint32_t) &ep0_buf_out;
-	usb_endpoints[0].DeviceDescBank[0].PCKSIZE.bit.SIZE=USB_EP_size_to_gc(USB_EP0_SIZE);
+	usb_endpoints[0].DeviceDescBank[0].PCKSIZE.reg = USB_DEVICE_PCKSIZE_SIZE(USB_EP_size_to_gc(USB_EP0_SIZE));
 	usb_endpoints[0].DeviceDescBank[1].ADDR.reg = (uint32_t) &ep0_buf_in;
-	usb_endpoints[0].DeviceDescBank[1].PCKSIZE.bit.SIZE=USB_EP_size_to_gc(USB_EP0_SIZE);
-	usb_endpoints[0].DeviceDescBank[1].PCKSIZE.bit.AUTO_ZLP=1;
+	usb_endpoints[0].DeviceDescBank[1].PCKSIZE.reg = USB_DEVICE_PCKSIZE_SIZE(USB_EP_size_to_gc(USB_EP0_SIZE)) | USB_DEVICE_PCKSIZE_AUTO_ZLP;
 	USB->DEVICE.DeviceEndpoint[0].EPINTENSET.reg = USB_DEVICE_EPINTENSET_RXSTP;
 	USB->DEVICE.DeviceEndpoint[0].EPCFG.reg  = USB_DEVICE_EPCFG_EPTYPE0(USB_EPTYPE_CONTROL)
 	                                         | USB_DEVICE_EPCFG_EPTYPE1(USB_EPTYPE_CONTROL);
@@ -126,8 +125,7 @@ inline void usb_reset_ep(uint8_t ep){
 }
 
 inline usb_bank usb_ep_start_out(uint8_t ep, uint8_t* data, usb_size len) {
-	usb_endpoints[ep].DeviceDescBank[0].PCKSIZE.bit.MULTI_PACKET_SIZE = len;
-	usb_endpoints[ep].DeviceDescBank[0].PCKSIZE.bit.BYTE_COUNT = 0;
+	usb_endpoints[ep].DeviceDescBank[0].PCKSIZE.reg = USB_DEVICE_PCKSIZE_BYTE_COUNT(0) | USB_DEVICE_PCKSIZE_MULTI_PACKET_SIZE(len) | USB_DEVICE_PCKSIZE_SIZE(USB_EP_size_to_gc(USB_EP0_SIZE));
 	usb_endpoints[ep].DeviceDescBank[0].ADDR.reg = (uint32_t) data;
 	USB->DEVICE.DeviceEndpoint[ep].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT0 | USB_DEVICE_EPINTFLAG_TRFAIL0;
 	USB->DEVICE.DeviceEndpoint[ep].EPINTENSET.reg = USB_DEVICE_EPINTENSET_TRCPT0;
@@ -137,9 +135,8 @@ inline usb_bank usb_ep_start_out(uint8_t ep, uint8_t* data, usb_size len) {
 
 inline usb_bank usb_ep_start_in(uint8_t ep, const uint8_t* data, usb_size size, bool zlp) {
 	ep &= 0x3f;
+	usb_endpoints[ep].DeviceDescBank[1].PCKSIZE.reg = USB_DEVICE_PCKSIZE_BYTE_COUNT(size) | USB_DEVICE_PCKSIZE_MULTI_PACKET_SIZE(0) | USB_DEVICE_PCKSIZE_SIZE(USB_EP_size_to_gc(USB_EP0_SIZE));
 	usb_endpoints[ep].DeviceDescBank[1].PCKSIZE.bit.AUTO_ZLP = zlp;
-	usb_endpoints[ep].DeviceDescBank[1].PCKSIZE.bit.MULTI_PACKET_SIZE = 0;
-	usb_endpoints[ep].DeviceDescBank[1].PCKSIZE.bit.BYTE_COUNT = size;
 	usb_endpoints[ep].DeviceDescBank[1].ADDR.reg = (uint32_t) data;
 	USB->DEVICE.DeviceEndpoint[ep].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1 | USB_DEVICE_EPINTFLAG_TRFAIL1;
 	USB->DEVICE.DeviceEndpoint[ep].EPINTENSET.reg = USB_DEVICE_EPINTENSET_TRCPT1;
