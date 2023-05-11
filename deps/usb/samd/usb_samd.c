@@ -59,7 +59,6 @@ void usb_init(){
 
 	USB->DEVICE.PADCAL.reg = USB_PADCAL_TRANSN(pad_transn) | USB_PADCAL_TRANSP(pad_transp) | USB_PADCAL_TRIM(pad_trim);
 
-	memset(usb_endpoints, 0, usb_num_endpoints*sizeof(UsbDeviceDescriptor));
 	USB->DEVICE.DESCADD.reg = (uint32_t)(&usb_endpoints[0]);
 	USB->DEVICE.INTENSET.reg = USB_DEVICE_INTENSET_EORST;
 
