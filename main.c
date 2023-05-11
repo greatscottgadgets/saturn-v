@@ -26,9 +26,6 @@ const char copyright_note[] = COPYRIGHT_NOTE;
 
 volatile bool exit_and_jump = 0;
 
-// set at runtime
-uint32_t total_flash_size;
-
 /*** SysTick ***/
 
 volatile uint32_t g_msTicks = 0;
@@ -86,21 +83,8 @@ void noopFunction(void)
 	// Placeholder function for code that isn't needed. Keep empty!
 }
 
-static void hardware_detect(void)
-{
-	// what kind of chip are we installed on?
-	// .. don't care
-
-	// how big is the flash tho
-	uint16_t page_size = 1 << (NVMCTRL->PARAM.bit.PSZ + 3);
-
-	total_flash_size = NVMCTRL->PARAM.bit.NVMP * page_size;
-}
-
 void bootloader_main(void)
 {
-	hardware_detect();
-
 	// Turn on the LED that indicates we're in bootloader mode.
 	pin_out(LED_PIN);
 	pin_low(LED_PIN);
