@@ -31,7 +31,7 @@ uint32_t total_flash_size;
 
 /*** SysTick ***/
 
-volatile uint32_t g_msTicks;
+volatile uint32_t g_msTicks = 0;
 
 /* SysTick IRQ handler */
 void SysTick_Handler(void) {
@@ -50,7 +50,6 @@ void init_systick(void) {
 		while (1) {}								/* Capture error */
 	}
 	NVIC_SetPriority(SysTick_IRQn, 0x0);
-	g_msTicks = 0;
 }
 
 /*** USB / DFU ***/
