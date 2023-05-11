@@ -139,7 +139,6 @@ bool bootloader_sw_triggered(void)
 
 bool button_pressed(void)
 {
-	pin_in(RECOVERY_BUTTON);
 	pin_pull_up(RECOVERY_BUTTON);
 
 
