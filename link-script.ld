@@ -88,11 +88,17 @@ SECTIONS
         KEEP (*(.preinit_array))
         __preinit_array_end = .;
 
+        ASSERT(__preinit_array_end == __preinit_array_start,
+                    "No support for preinit section");
+
         . = ALIGN(4);
         __init_array_start = .;
         KEEP (*(SORT(.init_array.*)))
         KEEP (*(.init_array))
         __init_array_end = .;
+
+        ASSERT(__init_array_end == __init_array_start,
+                    "No support for init section");
 
         . = ALIGN(4);
         KEEP (*crtbegin.o(.ctors))
@@ -108,6 +114,9 @@ SECTIONS
         KEEP (*(.fini_array))
         KEEP (*(SORT(.fini_array.*)))
         __fini_array_end = .;
+
+        ASSERT(__fini_array_end == __fini_array_start,
+                    "No support for fini section");
 
         KEEP (*crtbegin.o(.dtors))
         KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))

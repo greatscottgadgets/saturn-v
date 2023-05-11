@@ -161,33 +161,12 @@ const DeviceVectors exception_table = {
  */
 void Reset_Handler(void)
 {
-        uint32_t *pSrc, *pDest;
-
-        /* Initialize the relocate segment */
-        pSrc = &_etext;
-        pDest = &_srelocate;
-
-#if 0
-		// See link-script.ld which makes sure we dont need this.
-
-        if (pSrc != pDest) {
-                for (; pDest < &_erelocate;) {
-                        *pDest++ = *pSrc++;
-                }
-        }
-#endif
+        uint32_t *pDest;
 
         /* Clear the zero segment */
         for (pDest = &_szero; pDest < &_ezero;) {
                 *pDest++ = 0;
         }
-
-        /* Set the vector table base address */
-        pSrc = (uint32_t *) & _sfixed;
-        SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
-
-        /* Initialize the C library */
-        __libc_init_array();
 
         /* Branch to main function */
         main_bl();

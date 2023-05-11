@@ -28,7 +28,7 @@ include boards/$(BOARD)/board.mk
 
 
 # Compiler flags.
-CFLAGS = -Wall --std=gnu99 -Os -g3 \
+CFLAGS = -Wall --std=gnu99 -Os -g3 -nostartfiles \
 			-flto -fdata-sections -ffunction-sections -funsigned-char -funsigned-bitfields \
 			-mcpu=cortex-m0plus -mthumb -D __$(PART)__ -I . -Iboards/$(BOARD)
 
