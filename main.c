@@ -99,9 +99,7 @@ void bootloader_main(void)
 
 	// Blink while we're in DFU mode.
 	while(!exit_and_jump) {
-		pin_high(LED_PIN);
-		delay_ms(300);
-		pin_low(LED_PIN);
+		pin_toggle(LED_PIN);
 		delay_ms(300);
 	}
 
