@@ -257,39 +257,31 @@ void *get_serial_number_string_descriptor()
 		 	(uint32_t *)0x0080A00C,
 			(uint32_t *)0x0080A040, (uint32_t *)0x0080A044, (uint32_t *)0x0080A048 };
 
-	uint32_t copy[4];
+	uint32_t copy[5];
 	copy[0] = *ser[0];
 	copy[1] = *ser[1];
 	copy[2] = *ser[2];
 	copy[3] = *ser[3];
+	copy[4] = 0;
 
 	uint8_t *tmp = (uint8_t *)copy;
 
-	int count = 0;
     int next = 1;
 	int buffer = tmp[0];
     int bitsLeft = 8;
 
-	const int length = 16;
-	char buf[27];
+	static char buf[27] = {0};
 
-	while(bitsLeft > 0 || next < length) {
-		if(bitsLeft < 5) {
-			if(next < length) {
-				buffer <<= 8;
-				buffer |= tmp[next++] & 0xff;
-				bitsLeft += 8;
-			} else {
-				int pad = 5 - bitsLeft;
-				buffer <<= pad;
-				bitsLeft += pad;
-			}
+	for (int count = 0; count < 26; ++count) {
+		if (bitsLeft < 5) {
+			buffer <<= 8;
+			buffer |= tmp[next++] & 0xff;
+			bitsLeft += 8;
 		}
 		bitsLeft -= 5;
 		int index = (buffer >> bitsLeft) & 0x1f;
-		buf[count++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"[index];
+		buf[count] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"[index];
 	}
-	buf[count] = 0;
 
 	return usb_string_to_descriptor(buf);
 }
