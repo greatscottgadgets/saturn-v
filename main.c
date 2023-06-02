@@ -22,27 +22,11 @@
 
 volatile bool exit_and_jump = 0;
 
-/*** SysTick ***/
-
-volatile uint32_t g_msTicks = 0;
-
-/* SysTick IRQ handler */
-void SysTick_Handler(void) {
-	g_msTicks++;
-}
-
 void delay_ms(unsigned ms) {
-	unsigned start = g_msTicks;
-	while (g_msTicks - start <= ms) {
-		__WFI();
+	/* Approximate ms delay using dummy clock cycles of 48 MHz clock */
+	for (unsigned i = 0; i < ms * (48000000 / 1000 / 5); ++i) {
+		__NOP();
 	}
-}
-
-void init_systick(void) {
-	if (SysTick_Config(48000000 / 1000)) {	/* Setup SysTick Timer for 1 msec interrupts  */
-		while (1) {}								/* Capture error */
-	}
-	NVIC_SetPriority(SysTick_IRQn, 0x0);
 }
 
 /*** USB / DFU ***/
@@ -87,7 +71,6 @@ void bootloader_main(void)
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
-	init_systick();
 	nvm_init();
 
 	__enable_irq();
@@ -103,12 +86,8 @@ void bootloader_main(void)
 		delay_ms(300);
 	}
 
-	delay_ms(25);
-
 	usb_detach();
 	nvm_invalidate_cache();
-
-	delay_ms(100);
 
 	// Hook: undo any special setup that board_setup_late might be needed to
 	// undo the setup the bootloader code has done.
