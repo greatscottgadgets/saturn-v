@@ -10,22 +10,12 @@
 #define NVM_DFLL_COARSE_SIZE   6
 #define NVM_DFLL_FINE_POS      64
 #define NVM_DFLL_FINE_SIZE     10
+#define NVM_READ_CAL(cal) \
+    ((*((uint32_t *)NVMCTRL_OTP4 + cal##_POS / 32)) >> (cal##_POS % 32)) & ((1 << cal##_SIZE) - 1)
 
 uint32_t dfll_nvm_val() {
-  uint32_t coarse = ( *((uint32_t *)(NVMCTRL_OTP4)
-      + (NVM_DFLL_COARSE_POS / 32))
-    >> (NVM_DFLL_COARSE_POS % 32))
-    & ((1 << NVM_DFLL_COARSE_SIZE) - 1);
-  if (coarse == 0x3f) {
-    coarse = 0x1f;
-  }
-  uint32_t fine = ( *((uint32_t *)(NVMCTRL_OTP4)
-      + (NVM_DFLL_FINE_POS / 32))
-    >> (NVM_DFLL_FINE_POS % 32))
-    & ((1 << NVM_DFLL_FINE_SIZE) - 1);
-  if (fine == 0x3ff) {
-    fine = 0x1ff;
-  }
+  uint32_t coarse = NVM_READ_CAL(NVM_DFLL_COARSE);
+  uint32_t fine = NVM_READ_CAL(NVM_DFLL_FINE);
 
   return SYSCTRL_DFLLVAL_COARSE(coarse) | SYSCTRL_DFLLVAL_FINE(fine);
 }
@@ -44,17 +34,7 @@ void gclk_init() {
   SYSCTRL->INTFLAG.reg = SYSCTRL_INTFLAG_BOD33RDY | SYSCTRL_INTFLAG_BOD33DET |
       SYSCTRL_INTFLAG_DFLLRDY;
 
-  NVMCTRL->CTRLB.bit.RWS = 2;
-
-  // Initialize GCLK
-  PM->APBAMASK.reg |= PM_APBAMASK_GCLK;
-  GCLK->CTRL.reg = GCLK_CTRL_SWRST;
-  while (GCLK->CTRL.reg & GCLK_CTRL_SWRST);
-
-  // SERCOM slow clock (Shared by all SERCOM)
-  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |
-      GCLK_CLKCTRL_GEN(0) |
-      GCLK_CLKCTRL_ID(SERCOM0_GCLK_ID_SLOW);
+  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_RWS_DUAL | NVMCTRL_CTRLB_MANW;
 }
 
 // Configure DFLL in USB recovery mode
@@ -68,8 +48,8 @@ const uint32_t dfll_ctrl_usb
 void clock_init_usb(u8 clk_system) {
   gclk_init();
 
-  // Disable ONDEMAND mode while writing configurations (errata 9905)
-  SYSCTRL->DFLLCTRL.reg = dfll_ctrl_usb & ~SYSCTRL_DFLLCTRL_ONDEMAND;
+  // Handle errata 9905
+  SYSCTRL->DFLLCTRL.reg = 0;
   dfll_wait_for_sync();
   SYSCTRL->DFLLVAL.reg = dfll_nvm_val();
   dfll_wait_for_sync();
