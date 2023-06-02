@@ -8,6 +8,8 @@
 #define NVM_USB_PAD_TRANSP_SIZE 5
 #define NVM_USB_PAD_TRIM_POS  55
 #define NVM_USB_PAD_TRIM_SIZE 3
+#define NVM_READ_CAL(cal) \
+    ((*((uint32_t *)NVMCTRL_OTP4 + cal##_POS / 32)) >> (cal##_POS % 32)) & ((1 << cal##_SIZE) - 1)
 
 #undef ENABLE
 
@@ -30,32 +32,9 @@ void usb_init(){
 	while (USB->DEVICE.SYNCBUSY.bit.ENABLE);
 
 	/* Load Pad Calibration */
-	pad_transn = ( *((uint32_t *)(NVMCTRL_OTP4)
-			+ (NVM_USB_PAD_TRANSN_POS / 32))
-		>> (NVM_USB_PAD_TRANSN_POS % 32))
-		& ((1 << NVM_USB_PAD_TRANSN_SIZE) - 1);
-
-	if (pad_transn == 0x1F) {
-		pad_transn = 5;
-	}
-
-	pad_transp =( *((uint32_t *)(NVMCTRL_OTP4)
-			+ (NVM_USB_PAD_TRANSP_POS / 32))
-			>> (NVM_USB_PAD_TRANSP_POS % 32))
-			& ((1 << NVM_USB_PAD_TRANSP_SIZE) - 1);
-
-	if (pad_transp == 0x1F) {
-		pad_transp = 29;
-	}
-
-	pad_trim =( *((uint32_t *)(NVMCTRL_OTP4)
-			+ (NVM_USB_PAD_TRIM_POS / 32))
-			>> (NVM_USB_PAD_TRIM_POS % 32))
-			& ((1 << NVM_USB_PAD_TRIM_SIZE) - 1);
-
-	if (pad_trim == 0x7) {
-		pad_trim = 3;
-	}
+	pad_transn = NVM_READ_CAL(NVM_USB_PAD_TRANSN);
+	pad_transp = NVM_READ_CAL(NVM_USB_PAD_TRANSP);
+	pad_trim = NVM_READ_CAL(NVM_USB_PAD_TRIM);
 
 	USB->DEVICE.PADCAL.reg = USB_PADCAL_TRANSN(pad_transn) | USB_PADCAL_TRANSP(pad_transp) | USB_PADCAL_TRIM(pad_trim);
 
@@ -215,7 +194,6 @@ USB_Speed usb_get_speed() {
 }
 
 void USB_Handler() {
-	uint32_t summary = USB->DEVICE.EPINTSMRY.reg;
 	uint32_t status = USB->DEVICE.INTFLAG.reg;
 
 	if (status & USB_DEVICE_INTFLAG_EORST) {
@@ -225,26 +203,22 @@ void USB_Handler() {
 		return;
 	}
 
-	if (summary & (1<<0)) {
-		uint32_t flags = USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg;
-		USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1 | USB_DEVICE_EPINTFLAG_TRCPT0 | USB_DEVICE_EPINTFLAG_RXSTP;
-		if (flags & USB_DEVICE_EPINTFLAG_RXSTP) {
-			memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
-			usb_handle_setup();
-		}
-		if (flags & USB_DEVICE_EPINTFLAG_TRCPT0) {
-			usb_handle_control_out_complete();
-		}
-		if (flags & USB_DEVICE_EPINTFLAG_TRCPT1) {
-			usb_handle_control_in_complete();
-		}
+	uint32_t flags = USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg;
+	USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1 | USB_DEVICE_EPINTFLAG_TRCPT0 | USB_DEVICE_EPINTFLAG_RXSTP;
+	if (flags & USB_DEVICE_EPINTFLAG_RXSTP) {
+		memcpy(&usb_setup, ep0_buf_out, sizeof(usb_setup));
+		usb_handle_setup();
+	}
+	if (flags & USB_DEVICE_EPINTFLAG_TRCPT0) {
+		usb_handle_control_out_complete();
+	}
+	if (flags & USB_DEVICE_EPINTFLAG_TRCPT1) {
+		usb_handle_control_in_complete();
 	}
 
 	for (int i=1; i<usb_num_endpoints; i++) {
-		if (summary & 1<<i) {
-			uint32_t flags = USB->DEVICE.DeviceEndpoint[i].EPINTFLAG.reg;
-			USB->DEVICE.DeviceEndpoint[i].EPINTENCLR.reg = flags;
-		}
+		uint32_t flags = USB->DEVICE.DeviceEndpoint[i].EPINTFLAG.reg;
+		USB->DEVICE.DeviceEndpoint[i].EPINTENCLR.reg = flags;
 	}
 
 	usb_cb_completion();
