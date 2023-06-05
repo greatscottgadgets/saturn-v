@@ -73,8 +73,12 @@ void bootloader_main(void)
 
 	__enable_irq();
 
-	pin_mux(PIN_USB_DM);
-	pin_mux(PIN_USB_DP);
+	// Configure USB pins
+	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
+							      PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_PMUXEN | 
+								  PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val) | 
+								  PORT_WRCONFIG_PINMASK(0x0300);
+
 	usb_init();
 	usb_attach();
 
@@ -110,8 +114,11 @@ bool bootloader_sw_triggered(void)
 
 bool button_pressed(void)
 {
-	pin_pull_up(RECOVERY_BUTTON);
-
+	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
+								  PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN | 
+								  PORT_WRCONFIG_PINMASK(1 << (RECOVERY_BUTTON.pin - 16));
+	PORT->Group[0].DIRCLR.reg = (1<<RECOVERY_BUTTON.pin);
+	PORT->Group[0].OUTSET.reg = (1<<RECOVERY_BUTTON.pin);
 
 	// Drop into Recovery Mode if the recovery button is presssed.
 	if (pin_read(RECOVERY_BUTTON) == 0) {
