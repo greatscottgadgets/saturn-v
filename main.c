@@ -70,7 +70,6 @@ void bootloader_main(void)
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
-	nvm_init();
 
 	__enable_irq();
 

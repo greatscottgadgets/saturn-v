@@ -12,7 +12,6 @@ uint32_t nvm_flash_size() {
 }
 
 void nvm_init() {
-  NVMCTRL->CTRLB.bit.MANW = 1;
 }
 
 void nvm_address(uint32_t addr) {
@@ -34,14 +33,11 @@ void nvm_erase_row(uint32_t addr) {
 }
 
 void nvm_write_page(uint32_t addr, uint8_t* buf, uint8_t len) {
-  uint32_t nvm_addr = addr/2;
-
+  uint32_t nvm_addr = addr >> 1;
+  uint16_t *src = (uint16_t*)buf;
   // NVM must be accessed as a series of 16-bit words
-  for (uint16_t i = 0; i < len; i += 2) {
-    uint16_t data = buf[i];
-    if (i < (len - 1)) data |= (buf[i + 1] << 8);
-
-    NVM_MEMORY[nvm_addr++] = data;
+  for (uint16_t i = 0; i < (len >> 1); i++) {
+    NVM_MEMORY[nvm_addr++] = src[i];
   }
 
   /* Perform a manual NVM write when the length of data to be programmed is
