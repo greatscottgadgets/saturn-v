@@ -65,9 +65,8 @@ void noopFunction(void)
 
 void bootloader_main(void)
 {
-	// Turn on the LED that indicates we're in bootloader mode.
+	// Set up the LED that indicates we're in bootloader mode.
 	pin_out(LED_PIN);
-	pin_low(LED_PIN);
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
