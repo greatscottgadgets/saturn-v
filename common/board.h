@@ -8,11 +8,11 @@
 #include "common/hw.h"
 
 // Memory Layout
-// - first 4k reserved for DAFU Bootloader
+// - first 2k reserved for Saturn-V Bootloader
 // - remainder of flash for main firmware
 //
 #define FLASH_BOOT_START 	0
-#define FLASH_BOOT_SIZE 	4096
+#define FLASH_BOOT_SIZE 	2048
 
 #define FLASH_FW_START 		FLASH_BOOT_SIZE
 #define FLASH_FW_SIZE 		(FLASH_SIZE - FLASH_BOOT_SIZE)

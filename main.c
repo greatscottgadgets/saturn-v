@@ -101,7 +101,7 @@ bool flash_valid() {
 	unsigned ip = ((unsigned *)FLASH_FW_ADDR)[1];
 
 	return     sp > 0x20000000
-			&& ip >= 0x00001000
+			&& ip >= FLASH_FW_START
 			&& ip <  0x00400000;
 }
 
