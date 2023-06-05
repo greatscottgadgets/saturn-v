@@ -2,7 +2,7 @@
 
 DFU_State dfu_state;
 DFU_Status dfu_status;
-uint16_t dfu_poll_timeout;
+uint16_t dfu_poll_timeout = 0;
 uint16_t dfu_block_offset;
 
 void dfu_control_setup() {
@@ -68,7 +68,6 @@ void dfu_error(uint8_t status) {
 void dfu_reset() {
 	dfu_state = DFU_STATE_dfuIDLE;
 	dfu_status = DFU_STATUS_OK;
-	dfu_poll_timeout = 0;
 }
 
 void dfu_control_out_completion() {
@@ -81,8 +80,8 @@ void dfu_control_out_completion() {
 			dfu_block_offset += USB_EP0_SIZE;
 
 			if (dfu_block_offset >= usb_setup.wLength) {
-				dfu_poll_timeout = dfu_cb_dnload_block_completed(usb_setup.wValue, usb_setup.wLength);
-				if (dfu_poll_timeout == 0 && dfu_status == DFU_STATUS_OK) {
+				dfu_cb_dnload_block_completed(usb_setup.wValue, usb_setup.wLength);
+				if (dfu_status == DFU_STATUS_OK) {
 					dfu_state = DFU_STATE_dfuDNLOAD_IDLE;
 					usb_ep0_in(0);
 				}
