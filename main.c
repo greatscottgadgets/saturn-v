@@ -65,6 +65,12 @@ void noopFunction(void)
 
 void bootloader_main(void)
 {
+#if (((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ >= 6)) || (_BOARD_REVISION_MAJOR_ == 1))
+	// Take over USB port in board revisions >0.6
+	pin_out(USB_SWITCH);
+	pin_high(USB_SWITCH);
+#endif
+
 	// Set up the LED that indicates we're in bootloader mode.
 	pin_out(LED_PIN);
 
@@ -73,7 +79,7 @@ void bootloader_main(void)
 
 	__enable_irq();
 
-	// Configure USB pins
+	// Configure USB pins (24 and 25)
 	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
 							      PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_PMUXEN | 
 								  PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val) | 
@@ -114,9 +120,16 @@ bool bootloader_sw_triggered(void)
 
 bool button_pressed(void)
 {
+	// Configure RECOVERY button
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
 	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
 								  PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN | 
 								  PORT_WRCONFIG_PINMASK(1 << (RECOVERY_BUTTON.pin - 16));
+#else
+	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_WRPINCFG | 
+								  PORT_WRCONFIG_INEN | 
+								  PORT_WRCONFIG_PINMASK(1 << RECOVERY_BUTTON.pin);
+#endif
 	PORT->Group[0].DIRCLR.reg = (1<<RECOVERY_BUTTON.pin);
 	PORT->Group[0].OUTSET.reg = (1<<RECOVERY_BUTTON.pin);
 

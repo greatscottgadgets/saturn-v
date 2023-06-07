@@ -11,6 +11,20 @@
 
 BOARD ?= luna_d11
 
+# These should default to the latest revision; but can be set on the command line.
+BOARD_REVISION_MAJOR ?= 1
+BOARD_REVISION_MINOR ?= 0
+
+# On r0.1 or r0.2 boards, we want to target the SAMD21 / luna_d21 configuration.
+ifeq ($(BOARD_REVISION_MAJOR), 0)
+	ifeq ($(BOARD_REVISION_MINOR), 1)
+		BOARD := luna_d21
+	endif
+	ifeq ($(BOARD_REVISION_MINOR), 2)
+		BOARD := luna_d21
+	endif
+endif
+
 CROSS=arm-none-eabi-
 
 # Toolchain
@@ -34,11 +48,12 @@ CFLAGS = -Wall --std=gnu99 -Os -g3 -nostartfiles -fno-builtin \
 
 # USB PID/VID and other branding values
 CFLAGS += \
-			-D USB_PRODUCT_ID=0x7551 \
-			-D USB_VENDOR_ID=0x1209 \
+			-D USB_PRODUCT_ID=0x615c \
+			-D USB_VENDOR_ID=0x1d50 \
 			-D USB_MANUFACTURER_STR='"Great Scott Gadgets"' \
 			-D USB_PRODUCT_STR='"LUNA Saturn-V RCM Bootloader"' \
-			-D COPYRIGHT_NOTE='"Visit https://githib.com/opendime/DAFU"' \
+			-D_BOARD_REVISION_MAJOR_=$(BOARD_REVISION_MAJOR) \
+			-D_BOARD_REVISION_MINOR_=$(BOARD_REVISION_MINOR)
 
 # Header file search path
 PRJ_PATH = deps
