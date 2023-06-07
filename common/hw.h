@@ -10,6 +10,31 @@
 
 const extern char *git_version;
 
+inline static void pins_wrconfig(uint8_t group, uint32_t pin_mask, uint32_t flags) {
+  if (pin_mask & 0xFFFF0000UL) {
+    PORT->Group[group].WRCONFIG.reg = PORT_WRCONFIG_WRPINCFG | PORT_WRCONFIG_HWSEL | 
+                                      flags | PORT_WRCONFIG_PINMASK(pin_mask >> 16);
+  }
+  if (pin_mask & 0x0000FFFFUL) {
+    PORT->Group[group].WRCONFIG.reg = PORT_WRCONFIG_WRPINCFG | flags | 
+                                      PORT_WRCONFIG_PINMASK(pin_mask & 0xFFFF);
+  }
+}
+
+inline static void pins_out(uint8_t group, uint32_t pin_mask, uint32_t flags) {
+  pins_wrconfig(group, pin_mask, flags);
+  PORT->Group[group].DIRSET.reg = pin_mask;
+}
+
+inline static void pins_in(uint8_t group, uint32_t pin_mask, uint32_t flags) {
+  pins_wrconfig(group, pin_mask, flags);
+  PORT->Group[group].DIRCLR.reg = pin_mask;
+}
+
+inline static void pins_high(uint8_t group, uint32_t pin_mask) {
+  PORT->Group[group].OUTSET.reg = pin_mask;
+}
+
 inline static void pin_mux(Pin p) {
   if (p.pin & 1) {
     PORT->Group[p.group].PMUX[p.pin/2].bit.PMUXO = p.mux;

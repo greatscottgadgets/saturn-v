@@ -65,14 +65,17 @@ void noopFunction(void)
 
 void bootloader_main(void)
 {
-#if (((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ >= 6)) || (_BOARD_REVISION_MAJOR_ == 1))
-	// Take over USB port in board revisions >0.6
-	pin_out(USB_SWITCH);
+
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+	// Set up the LED that indicates we're in bootloader mode.
+	pins_out(0, (1 << LED_PIN.pin), 0);
+#else
+	// Set up output pins (LED and USB switch control)
+	pins_out(0, (1 << LED_PIN.pin) | (1 << USB_SWITCH.pin), 0);
+
+	// Take over USB port in board revisions >=0.6
 	pin_high(USB_SWITCH);
 #endif
-
-	// Set up the LED that indicates we're in bootloader mode.
-	pin_out(LED_PIN);
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
@@ -80,10 +83,8 @@ void bootloader_main(void)
 	__enable_irq();
 
 	// Configure USB pins (24 and 25)
-	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
-							      PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_PMUXEN | 
-								  PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val) | 
-								  PORT_WRCONFIG_PINMASK(0x0300);
+	pins_wrconfig(0, 0x03000000, PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_PMUXEN | 
+								 PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val));
 
 	usb_init();
 	usb_attach();
@@ -122,16 +123,12 @@ bool button_pressed(void)
 {
 	// Configure RECOVERY button
 #if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
-	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_HWSEL | PORT_WRCONFIG_WRPINCFG | 
-								  PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN | 
-								  PORT_WRCONFIG_PINMASK(1 << (RECOVERY_BUTTON.pin - 16));
+	const uint32_t flags = PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN;
 #else
-	PORT->Group[0].WRCONFIG.reg = PORT_WRCONFIG_WRPINCFG | 
-								  PORT_WRCONFIG_INEN | 
-								  PORT_WRCONFIG_PINMASK(1 << RECOVERY_BUTTON.pin);
+	const uint32_t flags = PORT_WRCONFIG_INEN;
 #endif
-	PORT->Group[0].DIRCLR.reg = (1<<RECOVERY_BUTTON.pin);
-	PORT->Group[0].OUTSET.reg = (1<<RECOVERY_BUTTON.pin);
+	pins_in(0, 1 << RECOVERY_BUTTON.pin, flags);
+	pins_high(0, 1 << RECOVERY_BUTTON.pin);
 
 	// Drop into Recovery Mode if the recovery button is presssed.
 	if (pin_read(RECOVERY_BUTTON) == 0) {
