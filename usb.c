@@ -124,7 +124,7 @@ uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** ptr)
 			address = &configuration_descriptor;
 			size    = sizeof(ConfigDesc);
 			break;
-		case USB_DTYPE_String:
+		case USB_DTYPE_String: {
 			char *string = NULL;
 			uint8_t string_len;
 			switch (index) {
@@ -154,6 +154,7 @@ uint16_t usb_cb_get_descriptor(uint8_t type, uint8_t index, const uint8_t** ptr)
 			address = str_to_descriptor(string, string_len);
 			size = (((USB_StringDescriptor*)address))->bLength;
 			break;
+		}
 	}
 
 	_exit:
