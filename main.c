@@ -20,37 +20,13 @@
 
 #include <board.h>
 
-__attribute__ ((section(".copyright")))
-__attribute__ ((used))
-const char copyright_note[] = COPYRIGHT_NOTE;
-
 volatile bool exit_and_jump = 0;
 
-// set at runtime
-uint32_t total_flash_size;
-
-/*** SysTick ***/
-
-volatile uint32_t g_msTicks;
-
-/* SysTick IRQ handler */
-void SysTick_Handler(void) {
-	g_msTicks++;
-}
-
 void delay_ms(unsigned ms) {
-	unsigned start = g_msTicks;
-	while (g_msTicks - start <= ms) {
-		__WFI();
+	/* Approximate ms delay using dummy clock cycles of 48 MHz clock */
+	for (unsigned i = 0; i < ms * (48000000 / 1000 / 5); ++i) {
+		__NOP();
 	}
-}
-
-void init_systick(void) {
-	if (SysTick_Config(48000000 / 1000)) {	/* Setup SysTick Timer for 1 msec interrupts  */
-		while (1) {}								/* Capture error */
-	}
-	NVIC_SetPriority(SysTick_IRQn, 0x0);
-	g_msTicks = 0;
 }
 
 /*** USB / DFU ***/
@@ -87,51 +63,40 @@ void noopFunction(void)
 	// Placeholder function for code that isn't needed. Keep empty!
 }
 
-static void hardware_detect(void)
-{
-	// what kind of chip are we installed on?
-	// .. don't care
-
-	// how big is the flash tho
-	uint16_t page_size = 1 << (NVMCTRL->PARAM.bit.PSZ + 3);
-
-	total_flash_size = NVMCTRL->PARAM.bit.NVMP * page_size;
-}
-
 void bootloader_main(void)
 {
-	hardware_detect();
 
-	// Turn on the LED that indicates we're in bootloader mode.
-	pin_out(LED_PIN);
-	pin_low(LED_PIN);
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+	// Set up the LED that indicates we're in bootloader mode.
+	pins_out(0, (1 << LED_PIN.pin), 0);
+#else
+	// Set up output pins (LED and USB switch control)
+	pins_out(0, (1 << LED_PIN.pin) | (1 << USB_SWITCH.pin), 0);
+
+	// Take over USB port in board revisions >=0.6
+	pin_high(USB_SWITCH);
+#endif
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
-	init_systick();
-	nvm_init();
 
 	__enable_irq();
 
-	pin_mux(PIN_USB_DM);
-	pin_mux(PIN_USB_DP);
+	// Configure USB pins (24 and 25)
+	pins_wrconfig(0, 0x03000000, PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_PMUXEN | 
+								 PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val));
+
 	usb_init();
 	usb_attach();
 
 	// Blink while we're in DFU mode.
 	while(!exit_and_jump) {
-		pin_high(LED_PIN);
-		delay_ms(300);
-		pin_low(LED_PIN);
+		pin_toggle(LED_PIN);
 		delay_ms(300);
 	}
 
-	delay_ms(25);
-
 	usb_detach();
 	nvm_invalidate_cache();
-
-	delay_ms(100);
 
 	// Hook: undo any special setup that board_setup_late might be needed to
 	// undo the setup the bootloader code has done.
@@ -143,7 +108,7 @@ bool flash_valid() {
 	unsigned ip = ((unsigned *)FLASH_FW_ADDR)[1];
 
 	return     sp > 0x20000000
-			&& ip >= 0x00001000
+			&& ip >= FLASH_FW_START
 			&& ip <  0x00400000;
 }
 
@@ -156,9 +121,14 @@ bool bootloader_sw_triggered(void)
 
 bool button_pressed(void)
 {
-	pin_in(RECOVERY_BUTTON);
-	pin_pull_up(RECOVERY_BUTTON);
-
+	// Configure RECOVERY button
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+	const uint32_t flags = PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN;
+#else
+	const uint32_t flags = PORT_WRCONFIG_INEN;
+#endif
+	pins_in(0, 1 << RECOVERY_BUTTON.pin, flags);
+	pins_high(0, 1 << RECOVERY_BUTTON.pin);
 
 	// Drop into Recovery Mode if the recovery button is presssed.
 	if (pin_read(RECOVERY_BUTTON) == 0) {

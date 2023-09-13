@@ -103,8 +103,7 @@ void I2S_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler
 /* Exception Table */
 __attribute__ ((section(".vectors")))
 __attribute__ ((used))
-const DeviceVectors exception_table = {
-
+void (* const exception_table[])(void) = {
         /* Configure Initial Stack Pointer, using linker-generated symbols */
         (void*) (&_estack),
 
@@ -133,26 +132,7 @@ const DeviceVectors exception_table = {
         (void*) NVMCTRL_Handler,        /*  5 Non-Volatile Memory Controller */
         (void*) DMAC_Handler,           /*  6 Direct Memory Access Controller */
         (void*) USB_Handler,            /*  7 Universal Serial Bus */
-        (void*) EVSYS_Handler,          /*  8 Event System Interface */
-        (void*) SERCOM0_Handler,        /*  9 Serial Communication Interface 0 */
-        (void*) SERCOM1_Handler,        /* 10 Serial Communication Interface 1 */
-        (void*) SERCOM2_Handler,        /* 11 Serial Communication Interface 2 */
-        (void*) SERCOM3_Handler,        /* 12 Serial Communication Interface 3 */
-        (void*) SERCOM4_Handler,        /* 13 Serial Communication Interface 4 */
-        (void*) SERCOM5_Handler,        /* 14 Serial Communication Interface 5 */
-        (void*) TCC0_Handler,           /* 15 Timer Counter Control 0 */
-        (void*) TCC1_Handler,           /* 16 Timer Counter Control 1 */
-        (void*) TCC2_Handler,           /* 17 Timer Counter Control 2 */
-        (void*) TC3_Handler,            /* 18 Basic Timer Counter 0 */
-        (void*) TC4_Handler,            /* 19 Basic Timer Counter 1 */
-        (void*) TC5_Handler,            /* 20 Basic Timer Counter 2 */
-        (void*) TC6_Handler,            /* 21 Basic Timer Counter 3 */
-        (void*) TC7_Handler,            /* 22 Basic Timer Counter 4 */
-        (void*) ADC_Handler,            /* 23 Analog Digital Converter */
-        (void*) AC_Handler,             /* 24 Analog Comparators */
-        (void*) DAC_Handler,            /* 25 Digital Analog Converter */
-        (void*) PTC_Handler,            /* 26 Peripheral Touch Controller */
-        (void*) I2S_Handler             /* 27 Inter-IC Sound Interface */
+        // Size optimization: ignore rest of handlers
 };
 
 /**
@@ -161,33 +141,12 @@ const DeviceVectors exception_table = {
  */
 void Reset_Handler(void)
 {
-        uint32_t *pSrc, *pDest;
-
-        /* Initialize the relocate segment */
-        pSrc = &_etext;
-        pDest = &_srelocate;
-
-#if 0
-		// See link-script.ld which makes sure we dont need this.
-
-        if (pSrc != pDest) {
-                for (; pDest < &_erelocate;) {
-                        *pDest++ = *pSrc++;
-                }
-        }
-#endif
+        uint32_t *pDest;
 
         /* Clear the zero segment */
         for (pDest = &_szero; pDest < &_ezero;) {
                 *pDest++ = 0;
         }
-
-        /* Set the vector table base address */
-        pSrc = (uint32_t *) & _sfixed;
-        SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
-
-        /* Initialize the C library */
-        __libc_init_array();
 
         /* Branch to main function */
         main_bl();
