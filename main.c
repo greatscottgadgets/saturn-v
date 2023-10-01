@@ -1,5 +1,5 @@
+// Copyright 2019-2023 Great Scott Gadgets <info@greatscottgadgets.com>
 // Copyright 2019 Katherine J. Temkin <kate@ktemkin.com>
-// Copyright 2019 Great Scott Gadgets <ktemkin@greatscottgadgets.com>
 // Copyright 2014 Technical Machine, Inc. See the COPYRIGHT
 // file at the top-level directory of this distribution.
 //
@@ -121,17 +121,17 @@ bool bootloader_sw_triggered(void)
 
 bool button_pressed(void)
 {
-	// Configure RECOVERY button
+	// Configure PROGRAM button
 #if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
 	const uint32_t flags = PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN;
 #else
 	const uint32_t flags = PORT_WRCONFIG_INEN;
 #endif
-	pins_in(0, 1 << RECOVERY_BUTTON.pin, flags);
-	pins_high(0, 1 << RECOVERY_BUTTON.pin);
+	pins_in(0, 1 << PROGRAM_BUTTON.pin, flags);
+	pins_high(0, 1 << PROGRAM_BUTTON.pin);
 
-	// Drop into Recovery Mode if the recovery button is presssed.
-	if (pin_read(RECOVERY_BUTTON) == 0) {
+	// Drop into DFU mode if the PROGRAM button is presssed.
+	if (pin_read(PROGRAM_BUTTON) == 0) {
 		return true;
 	}
 
