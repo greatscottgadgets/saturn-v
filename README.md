@@ -42,9 +42,9 @@ Once the bootloader has been built, use an SWD programmer to load the `bootloade
 ```
 $ arm-none-eabi-gdb -nx --batch \
     -ex 'target extended-remote /dev/ttyACM0' \
-    -ex 'monitor unlock_bootprot' \
     -ex 'monitor swdp_scan' \
     -ex 'attach 1' \
+    -ex 'monitor unlock_bootprot' \
     -ex 'load' \
     -ex 'monitor lock_bootprot 4' \
     -ex 'kill' \
