@@ -118,33 +118,19 @@ bool bootloader_sw_triggered(void)
 	return PM->RCAUSE.reg & PM_RCAUSE_WDT;
 }
 
-
-bool button_pressed(void)
-{
-	// Configure PROGRAM button
-#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
-	const uint32_t flags = PORT_WRCONFIG_INEN | PORT_WRCONFIG_PULLEN;
-#else
-	const uint32_t flags = PORT_WRCONFIG_INEN;
-#endif
-	pins_in(0, 1 << PROGRAM_BUTTON.pin, flags);
-	pins_high(0, 1 << PROGRAM_BUTTON.pin);
-
-	// Drop into DFU mode if the PROGRAM button is presssed.
-	if (pin_read(PROGRAM_BUTTON) == 0) {
-		return true;
-	}
-
-	return false;
-}
-
-
-
+static volatile uint32_t __attribute__((section(".stack"))) double_tap;
+#define TAP_MAGIC (uint32_t)&double_tap
 
 void main_bl(void) {
-	if (!flash_valid() || button_pressed() || bootloader_sw_triggered()) {
+	if (!flash_valid() || (double_tap == TAP_MAGIC) || bootloader_sw_triggered()) {
+		double_tap = 0;
 		bootloader_main();
 	}
+
+	double_tap = TAP_MAGIC;
+	// delay boot to give user time to press RESET a second time
+	delay_ms(8); // actually about half a second because clock not yet configured
+	double_tap = 0;
 
 	jump_to_flash(FLASH_FW_ADDR, 0);
 }

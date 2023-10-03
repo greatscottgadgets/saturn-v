@@ -41,7 +41,7 @@ CFLAGS += \
 			-D USB_PRODUCT_ID=0x615c \
 			-D USB_VENDOR_ID=0x1d50 \
 			-D USB_MANUFACTURER_STR='"Great Scott Gadgets"' \
-			-D USB_PRODUCT_STR='"Cynthion Saturn-V Bootloader"' \
+			-D USB_PRODUCT_STR='"Cynthion Saturn-V"' \
 			-D_BOARD_REVISION_MAJOR_=$(BOARD_REVISION_MAJOR) \
 			-D_BOARD_REVISION_MINOR_=$(BOARD_REVISION_MINOR)
 
