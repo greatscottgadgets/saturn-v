@@ -1,5 +1,5 @@
+// Copyright 2019-2023 Great Scott Gadgets <info@greatscottgadgets.com>
 // Copyright 2019 Katherine J. Temkin <kate@ktemkin.com>
-// Copyright 2019 Great Scott Gadgets <ktemkin@greatscottgadgets.com>
 // Copyright 2014 Technical Machine, Inc. See the COPYRIGHT
 // file at the top-level directory of this distribution.
 //
@@ -13,16 +13,23 @@
 #define __BOARD_H__
 
 // Buttons.
-#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
-const static Pin RECOVERY_BUTTON = {.group = 0, .pin = 16, .mux = 0 };
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 3))
+const static Pin PROGRAM_BUTTON = {.group = 1, .pin = 22, .mux = 0 };
+#elif ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+const static Pin PROGRAM_BUTTON = {.group = 0, .pin = 16, .mux = 0 };
 #else
-const static Pin RECOVERY_BUTTON = {.group = 0, .pin = 2, .mux = 0 };
+const static Pin PROGRAM_BUTTON = {.group = 0, .pin = 2, .mux = 0 };
+
 // USB switch
 const static Pin USB_SWITCH      = {.group = 0, .pin = 6, .mux = 0 };
 #endif
 
 // LEDs.
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 3))
+const static Pin LED_PIN         = {.group = 0, .pin = 18, .mux = 0 };
+#else
 const static Pin LED_PIN         = {.group = 0, .pin = 22, .mux = 0 };
+#endif
 
 // USB pins
 const static Pin PIN_USB_DM      = {.group = 0, .pin = 24, .mux = MUX_PA24G_USB_DM };
