@@ -87,6 +87,7 @@ void bootloader_main(void)
 								 PORT_WRCONFIG_PMUX(PORT_PMUX_PMUXE_G_Val));
 
 	usb_init();
+	dfu_reset();
 	usb_attach();
 
 	// Blink while we're in DFU mode.
