@@ -32,7 +32,6 @@ void dfu_control_setup() {
 		case DFU_GETSTATUS: {
 			if (dfu_state == DFU_STATE_dfuMANIFEST_SYNC) {
 				dfu_state = DFU_STATE_dfuMANIFEST;
-				dfu_cb_manifest();
 			}
 
 			uint8_t len = usb_setup.wLength;
@@ -89,6 +88,12 @@ void dfu_control_out_completion() {
 				usb_ep0_out();
 			}
 
+			break;
+		}
+		case DFU_GETSTATUS: {
+			if (dfu_state == DFU_STATE_dfuMANIFEST) {
+				dfu_cb_manifest();
+			}
 			break;
 		}
 	}
