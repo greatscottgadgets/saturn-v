@@ -143,7 +143,8 @@ bool button_pressed(void)
 
 
 void main_bl(void) {
-	if (!flash_valid() || button_pressed() || bootloader_sw_triggered()) {
+	uint32_t reason = PM->RCAUSE.reg;
+	if (!flash_valid() || (reason & PM_RCAUSE_WDT) || ((reason & PM_RCAUSE_POR) && button_pressed())) {
 		bootloader_main();
 	}
 
