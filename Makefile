@@ -30,6 +30,7 @@ TARGET_NAME = bootloader
 # Per-board configuration.
 include boards/$(BOARD)/board.mk
 
+PRODUCT_STRING ?= "Bootloader"
 
 # Compiler flags.
 CFLAGS = -Wall --std=gnu99 -Os -g3 -nostartfiles -fno-builtin \
@@ -40,8 +41,8 @@ CFLAGS = -Wall --std=gnu99 -Os -g3 -nostartfiles -fno-builtin \
 CFLAGS += \
 			-D USB_PRODUCT_ID=0x615c \
 			-D USB_VENDOR_ID=0x1d50 \
-			-D USB_MANUFACTURER_STR='"Great Scott Gadgets"' \
-			-D USB_PRODUCT_STR='"Cynthion Saturn-V Bootloader"' \
+			-D USB_MANUFACTURER_STR='"Saturn-V Project"' \
+			-D USB_PRODUCT_STR='$(PRODUCT_STRING)' \
 			-D_BOARD_REVISION_MAJOR_=$(BOARD_REVISION_MAJOR) \
 			-D_BOARD_REVISION_MINOR_=$(BOARD_REVISION_MINOR)
 
