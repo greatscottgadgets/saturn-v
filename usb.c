@@ -16,6 +16,10 @@ char* get_serial_number_string();
 
 USB_ENDPOINTS(1);
 
+#define BCD_ONES(x)     (x % 10)
+#define BCD_TENS(x)     ((x / 10) % 10)
+#define BCDDEVICE(x, y) (BCD_TENS(x)<<12 | BCD_ONES(x)<<8 | BCD_TENS(y)<<4 | BCD_ONES(y))
+
 const USB_DeviceDescriptor device_descriptor = {
 	.bLength = sizeof(USB_DeviceDescriptor),
 	.bDescriptorType = USB_DTYPE_Device,
@@ -28,7 +32,7 @@ const USB_DeviceDescriptor device_descriptor = {
 	.bMaxPacketSize0        = 64,
 	.idVendor               = 0x1d50,
 	.idProduct              = 0x615c,
-	.bcdDevice              = 0x0000,
+	.bcdDevice              = BCDDEVICE(VERSION_MAJOR, VERSION_MINOR),
 
 	.iManufacturer          = 0x01,
 	.iProduct               = 0x02,
