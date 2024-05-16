@@ -13,7 +13,7 @@ BOARD ?= cynthion
 
 # These should default to the latest hardware revision but can be set on the command line.
 BOARD_REVISION_MAJOR ?= 1
-BOARD_REVISION_MINOR ?= 3
+BOARD_REVISION_MINOR ?= 4
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
