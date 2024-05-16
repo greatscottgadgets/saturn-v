@@ -27,3 +27,10 @@ jobs:
     - name: Build
       run: make
 
+    # Publish bootloader binary for latest Cynthion hardware revision
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: bootloader-binary
+        path: bootloader.bin
+      if: matrix.os == 'ubuntu-latest'
