@@ -13,7 +13,10 @@ BOARD ?= cynthion
 
 # These should default to the latest hardware revision but can be set on the command line.
 BOARD_REVISION_MAJOR ?= 1
-BOARD_REVISION_MINOR ?= 3
+BOARD_REVISION_MINOR ?= 4
+
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
 
 CROSS=arm-none-eabi-
 
@@ -44,7 +47,9 @@ CFLAGS += \
 			-D USB_MANUFACTURER_STR='"Saturn-V Project"' \
 			-D USB_PRODUCT_STR='$(PRODUCT_STRING)' \
 			-D_BOARD_REVISION_MAJOR_=$(BOARD_REVISION_MAJOR) \
-			-D_BOARD_REVISION_MINOR_=$(BOARD_REVISION_MINOR)
+			-D_BOARD_REVISION_MINOR_=$(BOARD_REVISION_MINOR) \
+			-D VERSION_MAJOR=$(VERSION_MAJOR) \
+			-D VERSION_MINOR=$(VERSION_MINOR)
 
 # Header file search path
 PRJ_PATH = deps
