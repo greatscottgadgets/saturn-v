@@ -1,4 +1,4 @@
-// Copyright 2019-2023 Great Scott Gadgets <info@greatscottgadgets.com>
+// Copyright 2019-2024 Great Scott Gadgets <info@greatscottgadgets.com>
 // Copyright 2019 Katherine J. Temkin <kate@ktemkin.com>
 // Copyright 2014 Technical Machine, Inc. See the COPYRIGHT
 // file at the top-level directory of this distribution.
@@ -34,5 +34,13 @@ const static Pin LED_PIN         = {.group = 0, .pin = 22, .mux = 0 };
 // USB pins
 const static Pin PIN_USB_DM      = {.group = 0, .pin = 24, .mux = MUX_PA24G_USB_DM };
 const static Pin PIN_USB_DP      = {.group = 0, .pin = 25, .mux = MUX_PA25G_USB_DP };
+
+// Sideband PHY RESET
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 3))
+const static Pin SIDEBAND_RESET  = {.group = 1, .pin = 23, .mux = 0 };
+#elif ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+const static Pin SIDEBAND_RESET  = {.group = 0, .pin = 9, .mux = 0 };
+#endif
+
 
 #endif
