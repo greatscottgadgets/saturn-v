@@ -1,4 +1,4 @@
-// Copyright 2019-2023 Great Scott Gadgets <info@greatscottgadgets.com>
+// Copyright 2019-2024 Great Scott Gadgets <info@greatscottgadgets.com>
 // Copyright 2019 Katherine J. Temkin <kate@ktemkin.com>
 // Copyright 2014 Technical Machine, Inc. See the COPYRIGHT
 // file at the top-level directory of this distribution.
@@ -66,16 +66,26 @@ void noopFunction(void)
 void bootloader_main(void)
 {
 
-#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
-	// Set up the LED that indicates we're in bootloader mode.
+	// Set up output pins.
+#if ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 3))
 	pins_out(0, (1 << LED_PIN.pin), 0);
+#elif ((_BOARD_REVISION_MAJOR_ == 0) && (_BOARD_REVISION_MINOR_ < 6))
+	pins_out(0, (1 << LED_PIN.pin) | (1 << SIDEBAND_RESET.pin), 0);
 #else
-	// Set up output pins (LED and USB switch control)
 	pins_out(0, (1 << LED_PIN.pin) | (1 << USB_SWITCH.pin), 0);
 
 	// Take over USB port in board revisions >=0.6
 	pin_high(USB_SWITCH);
 #endif
+	/*
+	 * Cynthion r0.3 through r0.5 do not have a USB switch. On these
+	 * platforms the Sideband PHY RESET is pulled low to ensure that it
+	 * does not interfere with the bootloader's use of the Sideband USB
+	 * port. The output is explicitly enabled but implicitly driven low (by
+	 * reset default). Sideband PHY usage is unsupported on Cynthion r0.1
+	 * and r0.2.
+	 */
+
 
 	// Set up the main clocks.
 	clock_init_usb(GCLK_SYSTEM);
