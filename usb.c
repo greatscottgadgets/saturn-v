@@ -259,7 +259,7 @@ char *get_serial_number_string(void)
 		}
 		bitsLeft -= 5;
 		int index = (buffer >> bitsLeft) & 0x1f;
-		buf[count] = index + (index < 26 ? 'A' : '2');  // Base32
+		buf[count] = index + (index < 26 ? 'A' : '2' - 26);  // Base32
 	}
 
 	return buf;
